@@ -1,0 +1,23 @@
+# Core PySpark & Delta Lake
+pyspark==3.5.0
+delta-spark==3.0.0
+
+# Kafka
+kafka-python==2.0.2
+confluent-kafka==2.3.0
+
+# Data Generation
+faker==20.1.0
+
+# Airflow (install separately - see note below)
+apache-airflow==2.8.0
+
+# Data Quality
+great-expectations==0.18.0
+
+# Utilities
+pandas==2.1.0
+pyarrow==14.0.0
+python-dotenv==1.0.0
+boto3==1.34.0
+numpy<2
