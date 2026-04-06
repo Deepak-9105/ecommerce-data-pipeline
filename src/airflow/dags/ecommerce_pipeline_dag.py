@@ -78,6 +78,57 @@ def run_gold_aggregations(**context):
         raise Exception(f"Gold job failed:\n{result.stderr}")
     print("✅ Gold aggregations complete!")
 
+def upload_to_s3(**context):
+    """Upload Bronze, Silver, Gold Delta tables to AWS S3."""
+    import os
+
+    import boto3
+    from dotenv import load_dotenv
+
+    load_dotenv("/opt/airflow/.env")
+
+    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_REGION     = os.getenv("AWS_REGION", "ap-south-1")
+    S3_BUCKET      = os.getenv("S3_BUCKET")
+
+    print(f"🚀 Starting S3 upload to bucket: {S3_BUCKET}")
+
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY,
+        aws_secret_access_key=AWS_SECRET_KEY,
+        region_name=AWS_REGION
+    )
+
+    def upload_folder(local_path, s3_prefix):
+        uploaded = 0
+        for root, dirs, files in os.walk(local_path):
+            for file in files:
+                local_file = os.path.join(root, file)
+                relative   = os.path.relpath(local_file, local_path)
+                s3_key     = f"{s3_prefix}/{relative}".replace("\\", "/")
+                s3.upload_file(local_file, S3_BUCKET, s3_key)
+                uploaded += 1
+        return uploaded
+
+    # Upload all three layers
+    layers = {
+        "bronze/orders" : "/opt/airflow/data/bronze/orders",
+        "silver/orders" : "/opt/airflow/data/silver/orders",
+        "gold"          : "/opt/airflow/data/gold",
+    }
+
+    total = 0
+    for s3_prefix, local_path in layers.items():
+        if os.path.exists(local_path):
+            count = upload_folder(local_path, s3_prefix)
+            print(f"   ✅ {s3_prefix}: {count} files uploaded")
+            total += count
+        else:
+            print(f"   ⚠️  {s3_prefix}: local path not found, skipping")
+
+    print(f"\n✅ S3 upload complete! {total} files uploaded to s3://{S3_BUCKET}/")
 
 def run_data_quality_check(**context):
     import os
@@ -144,6 +195,12 @@ gold_task = PythonOperator(
     dag=dag,
 )
 
+s3_upload_task = PythonOperator(
+    task_id="upload_to_s3",
+    python_callable=upload_to_s3,
+    dag=dag,
+)
+
 quality_task = PythonOperator(
     task_id="run_data_quality_checks",
     python_callable=run_data_quality_check,
@@ -159,4 +216,4 @@ success_task = PythonOperator(
 end = EmptyOperator(task_id="pipeline_end", dag=dag)
 
 # ── Dependencies ─────────────────────────────────────────────────
-start >> bronze_health_task >> silver_task >> gold_task >> quality_task >> success_task >> end
+start >> bronze_health_task >> silver_task >> gold_task >> s3_upload_task >> quality_task >> success_task >> end
