@@ -51,37 +51,28 @@ e-commerce orders, processes them through a Medallion Architecture
 
 ---
 
-## 📁 Project Structure
+### 📂 Project Structure
 
+```text
 ecommerce-data-pipeline/
-│
-├── src/
-│ ├── producer/
-│ │ └── order_producer.py # Kafka event generator
-│ ├── bronze/
-│ │ └── bronze_stream.py # Spark Structured Streaming
-│ ├── silver/
-│ │ └── silver_transform.py # Data cleaning & enrichment
-│ ├── gold/
-│ │ └── gold_aggregations.py # Business aggregations
-│ ├── quality/
-│ │ └── data_quality_checks.py # Great Expectations checks
-│ ├── cloud/
-│ │ └── upload_to_s3.py # AWS S3 sync
-│ ├── dashboard/
-│ │ └── load_gold_to_postgres.py # Metabase data loader
-│ └── airflow/
-│ └── dags/
-│ └── ecommerce_pipeline_dag.py # Airflow DAG
-│
-├── data/
-│ ├── bronze/ # Raw Delta tables
-│ ├── silver/ # Cleaned Delta tables
-│ └── gold/ # Aggregated Delta tables
-│
-├── docker-compose.yml # Kafka + Airflow + Metabase
-├── requirements.txt # Python dependencies
-└── README.md
+├── 📂 src/
+│   ├── 🛰️ producer/           # Kafka event generator (Simulated Clickstream)
+│   ├── 🥉 bronze/             # Spark Structured Streaming (Raw Ingestion)
+│   ├── 🥈 silver/             # Data cleaning & Delta Lake enrichment
+│   ├── 🥇 gold/               # Business logic & Metric aggregations
+│   ├── 🧪 quality/            # Great Expectations & Data validation
+│   ├── ☁️ cloud/               # AWS S3 Sync & Cloud storage logic
+│   ├── 📊 dashboard/           # Postgres/Metabase data loading
+│   └── 🌬️ airflow/
+│       └── 📂 dags/           # Airflow DAG orchestration (Medallion Flow)
+├── 📂 data/                    # Local Delta Lake storage (Docker Volumes)
+│   ├── 📁 bronze/              # Raw Parquet/Delta files (Immutable)
+│   ├── 📁 silver/              # Optimized Delta tables (Upserts/Deletes)
+│   └── 📁 gold/                # Final reporting tables (Aggregated)
+├── 🐋 docker-compose.yml       # Kafka, Airflow, Postgres & Metabase stack
+├── 🐍 requirements.txt         # Python dependencies
+└── 📝 README.md                # Project documentation
+```
 
 ---
 
