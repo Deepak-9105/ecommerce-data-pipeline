@@ -55,23 +55,26 @@ e-commerce orders, processes them through a Medallion Architecture
 
 ```text
 ecommerce-data-pipeline/
-├── 📂 src/
-│   ├── 🛰️ producer/           # Kafka event generator (Simulated Clickstream)
-│   ├── 🥉 bronze/             # Spark Structured Streaming (Raw Ingestion)
-│   ├── 🥈 silver/             # Data cleaning & Delta Lake enrichment
-│   ├── 🥇 gold/               # Business logic & Metric aggregations
-│   ├── 🧪 quality/            # Great Expectations & Data validation
-│   ├── ☁️ cloud/               # AWS S3 Sync & Cloud storage logic
-│   ├── 📊 dashboard/           # Postgres/Metabase data loading
-│   └── 🌬️ airflow/
-│       └── 📂 dags/           # Airflow DAG orchestration (Medallion Flow)
-├── 📂 data/                    # Local Delta Lake storage (Docker Volumes)
-│   ├── 📁 bronze/              # Raw Parquet/Delta files (Immutable)
-│   ├── 📁 silver/              # Optimized Delta tables (Upserts/Deletes)
-│   └── 📁 gold/                # Final reporting tables (Aggregated)
-├── 🐋 docker-compose.yml       # Kafka, Airflow, Postgres & Metabase stack
-├── 🐍 requirements.txt         # Python dependencies
-└── 📝 README.md                # Project documentation
+├── 📂 data/                  # Medallion Storage Layer (Mounted Volumes)
+│   ├── 🥉 bronze/            # Ingestion: Raw Parquet/Delta files
+│   ├── 🥈 silver/            # Processing: Cleaned & Unified Delta tables
+│   ├── 🥇 gold/              # Aggregation: Business-ready KPIs
+│   └── 🏁 checkpoints/       # Spark Streaming offsets (Fault Tolerance)
+├── 📂 docs/                  # Architectural diagrams & design specs
+├── 📂 src/                   # Core Pipeline Logic
+│   ├── 🌬️ airflow/           # DAG definitions & scheduling
+│   ├── 🥉 bronze/            # Raw ingestion & Kafka consumption
+│   ├── 🥈 silver/            # Cleaning, deduplication & Delta logic
+│   ├── 🥇 gold/              # Complex Spark SQL aggregations
+│   ├── 🛰️ producer/          # Kafka event simulation
+│   ├── 🧪 quality/           # Data validation (Great Expectations)
+│   └── ☁️ cloud/              # AWS S3 integration & Boto3 scripts
+├── 📂 tests/                 # Unit & Integration test suites
+├── 🐳 Dockerfile             # Custom Spark + Airflow image
+├── 🐋 docker-compose.yml     # Infrastructure (Kafka, Airflow, Postgres)
+├── 📜 log4j.properties       # Spark logging configuration
+├── 🐍 requirements.txt       # Python dependencies
+└── 📖 README.md              # Project documentation
 ```
 
 ---
@@ -230,17 +233,21 @@ python src/quality/data_quality_checks.py
 
 Create a `.env` file with:
 
+```
+text
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=ap-south-1
 S3_BUCKET=your-bucket-name
+```
 
 ---
 
 ## 📈 Airflow DAG
 
 The pipeline runs daily at 6 AM with 8 tasks:
-
+'''
+text
 pipeline_start
 ↓
 check_bronze_health
@@ -256,6 +263,7 @@ run_data_quality_checks
 pipeline_success_notification
 ↓
 pipeline_end
+'''
 
 ---
 

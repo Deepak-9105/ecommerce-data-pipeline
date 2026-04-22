@@ -38,11 +38,9 @@ services:
       interval: 5s
       retries: 5
 
-  # ── Airflow Init (runs once to set up DB and admin user) ──────
+  # ── Airflow Init ──────────────────────────────────────────────
   airflow-init:
-    image: apache/airflow:2.8.0-python3.11
     build: .
-    # image: apache/airflow:2.8.0-python3.11  <--- Comment this out
     container_name: airflow_init
     depends_on:
       postgres:
@@ -52,33 +50,25 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__WEBSERVER__SECRET_KEY: "ecommerce_pipeline_secret_key"
-    command: >
-      bash -c "
-        airflow db migrate &&
-        airflow users create
-          --username admin
-          --password admin
-          --firstname Admin
-          --lastname User
-          --role Admin
-          --email admin@example.com
-      "
+    command: bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
 
   # ── Airflow Scheduler ─────────────────────────────────────────
   airflow-scheduler:
-    image: apache/airflow:2.8.0-python3.11
     build: .
     container_name: airflow_scheduler
     depends_on:
       - airflow-init
-    env_file:
-      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
       AIRFLOW__WEBSERVER__SECRET_KEY: "ecommerce_pipeline_secret_key"
+      JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET: ${S3_BUCKET}
     volumes:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
@@ -88,21 +78,22 @@ services:
 
   # ── Airflow Webserver ─────────────────────────────────────────
   airflow-webserver:
-    image: apache/airflow:2.8.0-python3.11
     build: .
     container_name: airflow_webserver
     depends_on:
       - airflow-init
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
       AIRFLOW__WEBSERVER__SECRET_KEY: "ecommerce_pipeline_secret_key"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET: ${S3_BUCKET}
     volumes:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
@@ -110,5 +101,33 @@ services:
     command: airflow webserver
     restart: unless-stopped
 
+  # ── Grafana Dashboard ─────────────────────────────────────────
+  grafana:
+    image: grafana/grafana-enterprise:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_RENDERING_RENDERER_TOKEN: ecommerce_renderer_token_2024
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - postgres
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    container_name: grafana_renderer
+    ports:
+      - "8081:8081"
+    environment:
+      ENABLE_METRICS: "true"
+      RENDERING_MODE: clustered
+      RENDERING_CLUSTERING_MODE: browser
+      AUTH_TOKEN: ecommerce_renderer_token_2024
+
 volumes:
   postgres_data:
+  grafana_data:
