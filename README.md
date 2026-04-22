@@ -9,10 +9,21 @@
 ![Apache Airflow](https://img.shields.io/badge/Apache_Airflow-2.8.0-green)
 ![AWS S3](https://img.shields.io/badge/AWS-S3-yellow)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![Grafana](https://img.shields.io/badge/Grafana-Dashboard-orange)
 
 An end-to-end production-grade streaming data pipeline that ingests real-time
 e-commerce orders, processes them through a Medallion Architecture
 (Bronze → Silver → Gold), orchestrates with Apache Airflow, and syncs to AWS S3.
+
+---
+
+## 📸 Screenshots
+
+### Airflow DAG — All Tasks Green
+![Airflow DAG](docs/airflow_pipeline_success.png)
+
+### Grafana Dashboard — Business Intelligence
+![Grafana Dashboard](docs/grafana_dashboard.png)
 
 ---
 
