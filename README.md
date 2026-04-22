@@ -76,7 +76,6 @@ ecommerce-data-pipeline/
 ├── 🐍 requirements.txt       # Python dependencies
 └── 📖 README.md              # Project documentation
 ```
-
 ---
 
 ## 🚀 Pipeline Stages
@@ -233,8 +232,7 @@ python src/quality/data_quality_checks.py
 
 Create a `.env` file with:
 
-```
-text
+```text
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=ap-south-1
@@ -246,8 +244,7 @@ S3_BUCKET=your-bucket-name
 ## 📈 Airflow DAG
 
 The pipeline runs daily at 6 AM with 8 tasks:
-'''
-text
+```text
 pipeline_start
 ↓
 check_bronze_health
@@ -263,7 +260,7 @@ run_data_quality_checks
 pipeline_success_notification
 ↓
 pipeline_end
-'''
+```
 
 ---
 
@@ -297,9 +294,3 @@ pipeline_end
 
 - GitHub: [@Deepak-9105](https://github.com/Deepak-9105)
 - Project: [ecommerce-data-pipeline](https://github.com/Deepak-9105/ecommerce-data-pipeline)
-
----
-
-## 📄 License
-
-MIT License — feel free to use this project as a reference for your own data engineering portfolio!
